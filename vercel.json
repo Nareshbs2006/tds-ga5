@@ -1,0 +1,4 @@
+{
+  "builds": [{ "src": "index.py", "use": "@vercel/python", "config": { "includeFiles": ["kb.json"], "maxDuration": 60 } }],
+  "routes": [{ "src": "/(.*)", "dest": "index.py" }]
+}
