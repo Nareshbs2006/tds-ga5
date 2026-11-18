@@ -259,3 +259,19 @@ app.include_router(router)
 @app.get("/query")
 def query_get():
     return {"ok": True, "usage": "POST /query"}
+
+
+@app.get("/health")
+def health():
+    import urllib.error
+    import time as _t
+    out = {"token_len": len(os.environ.get("AIPIPE_TOKEN", "")), "kb": len(KB)}
+    t0 = _t.time()
+    try:
+        out["llm"] = _chat("gpt-4.1-mini", "Reply with JSON {\"ok\": true}", "ping", timeout=15, temperature=0)
+    except urllib.error.HTTPError as e:
+        out["llm_err"] = [e.code, e.read().decode()[:200]]
+    except Exception as e:
+        out["llm_err"] = repr(e)[:200]
+    out["ms"] = int((_t.time() - t0) * 1000)
+    return out
