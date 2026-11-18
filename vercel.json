@@ -1,4 +1,10 @@
 {
-  "builds": [{ "src": "index.py", "use": "@vercel/python", "config": { "includeFiles": ["kb.json"], "maxDuration": 60 } }],
-  "routes": [{ "src": "/(.*)", "dest": "index.py" }]
+  "builds": [
+    { "src": "index.py", "use": "@vercel/python", "config": { "includeFiles": ["kb.json"], "maxDuration": 60 } },
+    { "src": "debug.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/debug", "dest": "debug.py" },
+    { "src": "/(.*)", "dest": "index.py" }
+  ]
 }
