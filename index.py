@@ -20,7 +20,8 @@ CORS = {"Access-Control-Allow-Origin": "*"}
 def _post(path, payload, timeout):
     token = os.environ.get("AIPIPE_TOKEN", "")
     req = urllib.request.Request(AIPIPE + path, data=json.dumps(payload).encode(), headers={
-        "Content-Type": "application/json", "Authorization": f"Bearer {token}"})
+        "Content-Type": "application/json", "Authorization": f"Bearer {token.strip()}",
+        "User-Agent": "Mozilla/5.0 (tds-ga5 server)"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode())
 
