@@ -135,6 +135,7 @@ async def query(request: Request):
         sims = _lex_scores(question)
 
     if llm is not None and (llm.get("abstain") or not str(llm.get("answer") or "").strip()):
+        print("RAGLOG", json.dumps({"q": question, "abstain": True, "llm": llm}), flush=True)
         return JSONResponse({"answer": None, "sources": [], "scores": [], "confidence": 0.1}, headers=CORS)
 
     ranked = sorted(range(len(KB)), key=lambda i: -sims[i])
@@ -166,6 +167,7 @@ async def query(request: Request):
     else:
         answer = KB[chosen[0]]
         conf = 0.65
+    print("RAGLOG", json.dumps({"q": question, "answer": answer, "sources": chosen, "scores": scores, "llm": llm}), flush=True)
     return JSONResponse({"answer": answer, "sources": chosen, "scores": scores, "confidence": conf}, headers=CORS)
 
 
