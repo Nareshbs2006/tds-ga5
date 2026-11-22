@@ -11,6 +11,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 router = APIRouter()
+CAPTURE = {"classify": [], "query": []}
 HERE = os.path.dirname(os.path.abspath(__file__))
 KB = json.load(open(os.path.join(HERE, "kb.json")))
 AIPIPE = "https://aipipe.org/openai/v1"
@@ -119,6 +120,7 @@ async def query(request: Request):
     except Exception:
         body = {}
     question = str((body or {}).get("question") or "")
+    CAPTURE["query"].append(question)
     question = re.sub(r"<!--.*?-->", " ", question, flags=re.S).strip()
     try:
         top_k = max(1, min(10, int((body or {}).get("top_k") or 3)))
@@ -273,6 +275,7 @@ async def classify(request: Request):
         policy = {k: v for k, v in policy.items() if k in ("profile", "description", "authority", "content", "tools", "routing")} or policy
     policy_txt = json.dumps(policy, ensure_ascii=False, indent=1)
     cases = body.get("cases") or []
+    CAPTURE["classify"].append(body)
     with ThreadPoolExecutor(max(1, min(24, len(cases)))) as ex:
         results = list(ex.map(lambda c: _classify_case(policy_txt, c), cases))
     return JSONResponse({"profile": body.get("profile", "agent-harness-2026-09"), "batchId": body.get("batchId"),
@@ -306,3 +309,9 @@ def health():
         out["llm_err"] = repr(e)[:200]
     out["ms"] = int((_t.time() - t0) * 1000)
     return out
+
+
+@app.get("/dump")
+def dump(kind: str = "classify", i: int = 0):
+    data = CAPTURE.get(kind) or []
+    return JSONResponse({"n": len(data), "item": data[i] if i < len(data) else None}, headers=CORS)
