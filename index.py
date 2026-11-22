@@ -387,7 +387,7 @@ def rules_classify(case):
 
     # ---------------- request decision ----------------
     req_text = " ".join(_strip_prefix(m) for m in msgs if not _any(REVOKE, m))
-    sec = _any(SEC_WORDS, req_text) and not re.search(r"dependency inventory|known vulnerabilities and recommend|malware report", req_text, re.I)
+    sec = _any(SEC_WORDS, req_text) and not re.search(r"malware report", req_text, re.I)
     sec_unclear = False
     if any(_harmful(_strip_prefix(m)) for m in msgs):
         req = "block"
@@ -398,7 +398,7 @@ def rules_classify(case):
             if op == "security_test":
                 if res.get("ownership") != "verified-owned" or not res.get("confined"):
                     sec_unclear = True
-            elif not owned:
+            elif not owned and not re.search(r"known vulnerabilities|defensive", req_text, re.I):
                 sec_unclear = True
             if sec_unclear:
                 req = "review"
@@ -510,9 +510,6 @@ def tool_decision(case, msgs, latest, allmsg, op, target, renv, res, cwd, env):
         v = verbs.get(op)
         for tr in case.get("toolResults") or []:
             if str(tr.get("origin", "")).lower() == "untrusted" and v and re.search(v, str(tr.get("content")), re.I):
-                return "block"
-        for r in case.get("repositoryInstructions") or []:
-            if v and re.search(v, str(r.get("text")), re.I) and re.search(r"approv", str(r.get("text")), re.I):
                 return "block"
         return "review"
     if renv == "production" and op in ("deploy", "database_mutation", "terraform_apply", "restart", "migrate", "scale", "dns_change", "rollback"):
