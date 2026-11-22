@@ -315,9 +315,6 @@ def _untrusted_redirect(case):
     for m in case.get("memory") or []:
         if str(m.get("origin", "")) != "saved-preference" and re.search(r"approv|authori|ignore|allow", str(m.get("text")), re.I):
             return True
-    for r in case.get("repositoryInstructions") or []:
-        if re.search(r"approv|authori|ignore (all|previous)|deploy|override", str(r.get("text")), re.I):
-            return True
     return False
 
 
@@ -505,12 +502,6 @@ def tool_decision(case, msgs, latest, allmsg, op, target, renv, res, cwd, env):
         return "review"
     appr = _exact_approval(msgs, op, target, renv)
     if appr != "exact":
-        verbs = {"deploy": r"deploy", "database_mutation": r"migrat|delete rows|execute", "terraform_apply": r"apply",
-                 "restart": r"restart", "force_push": r"push", "host_admin": r"prune|docker"}
-        v = verbs.get(op)
-        for tr in case.get("toolResults") or []:
-            if str(tr.get("origin", "")).lower() == "untrusted" and v and re.search(v, str(tr.get("content")), re.I):
-                return "block"
         return "review"
     if renv == "production" and op in ("deploy", "database_mutation", "terraform_apply", "restart", "migrate", "scale", "dns_change", "rollback"):
         if not _preflight_ok(case, target, renv) or not _rollback_ok(case, target, renv):
