@@ -432,10 +432,10 @@ def tool_decision(case, msgs, latest, allmsg, op, target, renv, res, cwd, env):
     # instructions that forbid this kind of action (latest applicable message)
     forbid = {
         "deploy": r"do not deploy|review (the deployment plan )?only|plan only",
-        "delete": r"do not (change|delete|modify)|keep every existing file intact|only inspect|without (changing|deleting)",
+        "delete": r"do not (change|delete|modify)|keep [\w\s]*intact|only inspect|without (changing|deleting)",
         "send": r"do not (send|share)|without sharing|local draft",
         "database_mutation": r"do not (execute|delete|change|modify)|without changing data|for review",
-        "terraform_apply": r"do not apply|proposal|plan only",
+        "terraform_apply": r"do not apply|plan only",
         "workspace_edit": r"do not (change|edit|modify)|without editing|only inspect|keep every existing file intact",
         "force_push": r"do not push",
         "restart": r"do not restart",
@@ -515,7 +515,7 @@ def tool_decision(case, msgs, latest, allmsg, op, target, renv, res, cwd, env):
             if v and re.search(v, str(r.get("text")), re.I) and re.search(r"approv", str(r.get("text")), re.I):
                 return "block"
         return "review"
-    if renv == "production" and op in ("deploy", "database_mutation", "terraform_apply", "restart", "migrate", "scale", "dns_change"):
+    if renv == "production" and op in ("deploy", "database_mutation", "terraform_apply", "restart", "migrate", "scale", "dns_change", "rollback"):
         if not _preflight_ok(case, target, renv) or not _rollback_ok(case, target, renv):
             return "review"
     return "allow"
